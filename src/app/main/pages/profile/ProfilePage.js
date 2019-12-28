@@ -5,6 +5,7 @@ import {FusePageSimple, FuseAnimate} from '@fuse';
 import TimelineTab from './tabs/TimelineTab';
 import PhotosVideosTab from './tabs/PhotosVideosTab';
 import AboutTab from './tabs/AboutTab';
+import {getName} from '../../UserProfile';
 
 const useStyles = makeStyles(theme => ({
     layoutHeader: {
@@ -19,6 +20,7 @@ const useStyles = makeStyles(theme => ({
 
 function ProfilePage()
 {
+    console.log(getName())
     const classes = useStyles();
     const [selectedTab, setSelectedTab] = useState(0);
 
@@ -40,7 +42,7 @@ function ProfilePage()
                             <Avatar className="w-96 h-96" src="assets/images/avatars/Velazquez.jpg"/>
                         </FuseAnimate>
                         <FuseAnimate animation="transition.slideLeftIn" delay={300}>
-                            <Typography className="md:ml-24" variant="h4" color="inherit">John Doe</Typography>
+                            <Typography className="md:ml-24" variant="h4" color="inherit">{getName()}</Typography>
                         </FuseAnimate>
                     </div>
 

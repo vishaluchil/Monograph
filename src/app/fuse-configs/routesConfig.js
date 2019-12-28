@@ -23,7 +23,7 @@ const routes = [
     ...FuseUtils.generateRoutesFromConfigs(routeConfigs),
     {
         path     : '/',
-        component: () => <Redirect to="/chat"/>
+        component: () => <Redirect to="/pages/auth/login"/>
     }
 ];
 

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {getName} from '../../../UserProfile';
 import {
     AppBar,
     Avatar,
@@ -18,19 +19,39 @@ import {
     Toolbar,
     Typography
 } from '@material-ui/core';
-import {FuseAnimateGroup} from '@fuse';
-import axios from 'axios';
+import {FuseAnimateGroup} from '@fuse'; 
 import {Link} from 'react-router-dom';
 
 function TimelineTab()
 {
     const [data, setData] = useState(null);
+    const [input, setInput] = useState('');
+    const uname = getName();
 
     useEffect(() => {
-        axios.get('/api/profile/timeline').then(res => {
-            setData(res.data);
+        fetch('http://localhost:3000/timeline', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(posts => {
+            setData(posts);
+            console.log(posts)
         });
     }, []);
+
+    const submitPost = () => {
+        fetch('http://localhost:3000/timeline', {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                
+            })
+        })
+    }
 
     if ( !data )
     {
@@ -51,6 +72,8 @@ function TimelineTab()
                         <Card className="w-full overflow-hidden">
                             <Input
                                 className="p-16 w-full"
+                                value={input}
+                                onChange={e=> setInput(e.target.value)}
                                 classes={{root: 'text-14'}}
                                 placeholder="Write something.."
                                 multiline
@@ -72,7 +95,12 @@ function TimelineTab()
                                 </div>
 
                                 <div className="p-8">
-                                    <Button variant="contained" color="primary" size="small" aria-label="post">
+                                    <Button
+                                    variant="contained"
+                                    color="primary"
+                                    size="small"
+                                    aria-label="post"
+                                    onClick={submitPost}>
                                         POST
                                     </Button>
                                 </div>
@@ -83,7 +111,7 @@ function TimelineTab()
                         <Divider className="my-32"/>
                     </div>
 
-                    {data.posts.map((post) => (
+                    {data.map((post) => (
                             <Card key={post.id} className="mb-32 overflow-hidden">
                                 <CardHeader
                                     avatar={
@@ -229,7 +257,7 @@ function TimelineTab()
                         </AppBar>
                         <CardContent className="p-0">
                             <List>
-                                {data.activities.map((activity) => (
+                                {data.map((activity) => (
                                     <ListItem key={activity.id} className="">
                                         <Avatar alt={activity.user.name} src={activity.user.avatar}/>
                                         <ListItemText

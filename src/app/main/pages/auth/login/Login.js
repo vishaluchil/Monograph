@@ -6,6 +6,7 @@ import {FuseAnimate} from '@fuse';
 import {useForm} from '@fuse/hooks';
 import {Link, Redirect } from 'react-router-dom';
 import clsx from 'clsx';
+import {setName} from '../../../UserProfile';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -47,7 +48,8 @@ function Login()
         })
         .then(response => response.json())
         .then(data => {
-            if (data === 'success') {
+            if (data[0] === 'success') {
+                setName(data[1].username)
                 setRedir(!redir);
             }
         })
