@@ -149,8 +149,7 @@ function Register()
                                 className="w-full mx-auto mt-16"
                                 aria-label="Register"
                                 disabled={!isFormValid()}
-                                type="submit"
-                                
+                                type="submit" 
                             >
                                 CREATE AN ACCOUNT
                             </Button>

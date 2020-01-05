@@ -20,7 +20,6 @@ const useStyles = makeStyles(theme => ({
 
 function ProfilePage()
 {
-    console.log(getName())
     const classes = useStyles();
     const [selectedTab, setSelectedTab] = useState(0);
 

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {getName} from '../../../UserProfile';
+import {getName, setName} from '../../../UserProfile';
 import {
     AppBar,
     Avatar,
@@ -26,7 +26,10 @@ function TimelineTab()
 {
     const [data, setData] = useState(null);
     const [input, setInput] = useState('');
-    const uname = getName();
+    const [refresh, setRefresh] = useState(true);
+    const uname = getName()
+    console.log(uname)
+
 
     useEffect(() => {
         fetch('http://localhost:3000/timeline', {
@@ -41,15 +44,30 @@ function TimelineTab()
             setData(posts);
             console.log(posts)
         });
-    }, []);
+    }, [refresh]);
 
     const submitPost = () => {
         fetch('http://localhost:3000/timeline', {
             method: 'post',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                
+                user: {
+                    name: getName(),
+                    avatar: 'assets/images/avatars/alice.jpg'
+                },
+                message: input,
+                type: 'something',
+                like: 2,
+                comments: []
             })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data === 'error') {
+                console.log('error inserting post to db');
+            }else{
+                setRefresh(!refresh);
+            }
         })
     }
 
@@ -127,10 +145,10 @@ function TimelineTab()
                                                 <Typography className="inline font-medium mr-4" color="primary" paragraph={false}>
                                                     {post.user.name}
                                                 </Typography>
-                                            {post.type === 'post' && "posted on your timeline"}
+                                            {/* {post.type === 'post' && "posted on your timeline"}
                                             {post.type === 'something' && "shared something with you"}
                                             {post.type === 'video' && "shared a video with you"}
-                                            {post.type === 'article' && "shared an article with you"}
+                                            {post.type === 'article' && "shared an article with you"} */}
                                             </span>
                                     )}
                                     subheader={post.time}
