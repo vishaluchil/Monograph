@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {getName, setName} from '../../../UserProfile';
+import {getName} from '../../../UserProfile';
 import {
     AppBar,
     Avatar,
@@ -20,13 +20,16 @@ import {
     Typography
 } from '@material-ui/core';
 import {FuseAnimateGroup} from '@fuse'; 
-import {Link} from 'react-router-dom';
+import axios from 'axios';
 
 function TimelineTab()
 {
     const [data, setData] = useState(null);
     const [input, setInput] = useState('');
     const [refresh, setRefresh] = useState(true);
+    const [file, setFile] = useState("");
+    const [fileName, setFileName] = useState("Upload Image");
+    const [commentInput, setCommentInput] = useState('');
     const uname = getName()
     console.log(uname)
 
@@ -46,30 +49,114 @@ function TimelineTab()
         });
     }, [refresh]);
 
+    const onFileUpload = e => {
+        setFile(e.target.files[0])
+        setFileName(e.target.files[0].name)
+    }
+
     const submitPost = () => {
-        fetch('http://localhost:3000/timeline', {
-            method: 'post',
+        if (file !== "") {
+            const formData = new FormData()
+            formData.append('file', file);
+            axios.post('http://localhost:3000/uploadImage', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            fetch('http://localhost:3000/timeline', {
+                method: 'post',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user: {
+                        name: getName(),
+                        avatar: `assets/images/avatars/alice.jpg`
+                    },
+                    message: input,
+                    type: 'post',
+                    like: 2,
+                    media: {
+                        type: 'image',
+                        preview: `assets/images/profile/15.jpg`
+                    },
+                    comments: []
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data === 'error') {
+                    console.log('error inserting post to db');
+                }else{
+                    setRefresh(!refresh);
+                }
+            })
+        } 
+        else {
+            fetch('http://localhost:3000/timeline', {
+                method: 'post',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user: {
+                        name: getName(),
+                        avatar: 'assets/images/avatars/alice.jpg'
+                    },
+                    message: input,
+                    type: 'something',
+                    like: 2,
+                    comments: []
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data === 'error') {
+                    console.log('error inserting post to db');
+                }else{
+                    setInput('');
+                    setRefresh(!refresh);
+                }
+            })
+        }
+    }
+
+    const likeClick = id => {
+        fetch('http://localhost:3000/timelinelike', {
+            method: 'put',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user: {
-                    name: getName(),
-                    avatar: 'assets/images/avatars/alice.jpg'
-                },
-                message: input,
-                type: 'something',
-                like: 2,
-                comments: []
+                id: id
             })
         })
         .then(res => res.json())
         .then(data => {
-            if (data === 'error') {
-                console.log('error inserting post to db');
-            }else{
-                setRefresh(!refresh);
+            if(data === 'success'){
+                setRefresh(!refresh)
             }
         })
     }
+
+    const commentClick = id => {
+        fetch('http://localhost:3000/timelinecomment', {
+            method: 'put',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: id,
+                user: {
+                    name  : 'vishal',
+                    avatar: 'assets/images/avatars/Trevino.jpg'
+                },
+                message: commentInput
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data === 'success'){
+                setCommentInput('')
+                setRefresh(!refresh)
+            }
+        })
+    }
+
+
 
     if ( !data )
     {
@@ -100,16 +187,19 @@ function TimelineTab()
                                 disableUnderline
                             />
                             <AppBar className="card-footer flex flex-row border-t-1" position="static" color="default" elevation={0}>
-                                <div className="flex-1 items-center">
-                                    <IconButton aria-label="Add photo">
-                                        <Icon>photo</Icon>
-                                    </IconButton>
-                                    <IconButton aria-label="Mention somebody">
-                                        <Icon>person</Icon>
-                                    </IconButton>
-                                    <IconButton aria-label="Add location">
-                                        <Icon>location_on</Icon>
-                                    </IconButton>
+                                <div className="flex-1 items-center p-8">
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        component="label"
+                                    >
+                                    {fileName}
+                                    <input
+                                        type="file"
+                                        style={{ display: "none" }}
+                                        onChange={onFileUpload}
+                                    />
+                                    </Button>
                                 </div>
 
                                 <div className="p-8">
@@ -130,7 +220,7 @@ function TimelineTab()
                     </div>
 
                     {data.map((post) => (
-                            <Card key={post.id} className="mb-32 overflow-hidden">
+                            <Card key={post._id} className="mb-32 overflow-hidden">
                                 <CardHeader
                                     avatar={
                                         <Avatar aria-label="Recipe" src={post.user.avatar}/>
@@ -165,6 +255,7 @@ function TimelineTab()
                                         <img
                                             src={post.media.preview}
                                             alt="post"
+                                            style={{height: '420px'}}
                                         />
                                     )}
 
@@ -181,15 +272,10 @@ function TimelineTab()
                                 </CardContent>
 
                                 <CardActions disableSpacing>
-                                    <Button size="small" aria-label="Add to favorites">
+                                    <Button size="small" aria-label="Add to favorites" onClick={() => likeClick(post._id)}>
                                         <Icon className="text-16 mr-8" color="action">favorite</Icon>
                                         <Typography className="normal-case">Like</Typography>
                                         <Typography className="normal-case ml-4">({post.like})</Typography>
-                                    </Button>
-                                    <Button aria-label="Share">
-                                        <Icon className="text-16 mr-8" color="action">share</Icon>
-                                        <Typography className="normal-case">Share</Typography>
-                                        <Typography className="normal-case ml-4">({post.share})</Typography>
                                     </Button>
                                 </CardActions>
 
@@ -223,10 +309,6 @@ function TimelineTab()
                                                                 secondary={comment.message}
                                                             />
                                                         </ListItem>
-                                                        <div className="flex items-center ml-56 mb-8">
-                                                            <Link to="#" className="mr-8">Reply</Link>
-                                                            <Icon className="text-14 cursor-pointer">flag</Icon>
-                                                        </div>
                                                     </div>
                                                 ))}
                                             </List>
@@ -242,12 +324,14 @@ function TimelineTab()
                                                     classes={{root: 'text-13'}}
                                                     placeholder="Add a comment.."
                                                     multiline
-                                                    rows="6"
+                                                    rows="2"
                                                     margin="none"
+                                                    value={commentInput}
+                                                    onChange={e => setCommentInput(e.target.value)}
                                                     disableUnderline
                                                 />
                                             </Paper>
-                                            <Button className="normal-case" variant="contained" color="primary" size="small">Post Comment</Button>
+                                            <Button className="normal-case" onClick={() => commentClick(post._id)} variant="contained" color="primary" size="small">Post Comment</Button>
                                         </div>
                                     </div>
                                 </AppBar>

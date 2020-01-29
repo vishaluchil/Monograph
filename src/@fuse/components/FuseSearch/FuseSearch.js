@@ -6,7 +6,7 @@ import {FuseUtils} from '@fuse';
 import clsx from 'clsx';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import {withRouter} from 'react-router-dom';
+import {withRouter, Redirect} from 'react-router-dom';
 import deburr from 'lodash/deburr';
 import Autosuggest from 'react-autosuggest';
 
@@ -65,18 +65,18 @@ function renderInputComponent(inputProps)
 
 function renderSuggestion(suggestion, {query, isHighlighted})
 {
-    const matches = match(suggestion.title, query);
-    const parts = parse(suggestion.title, matches);
+    const matches = match(suggestion.username, query);
+    const parts = parse(suggestion.username, matches);
 
     return (
         <MenuItem selected={isHighlighted} component="div">
             <ListItemIcon className="min-w-40">
-                {suggestion.icon ?
+                {suggestion.avatar ?
                     (
-                        <Icon>{suggestion.icon}</Icon>
+                        <img src={suggestion.avatar} style={{height: 48, padding: 5}}/>
                     ) :
                     (
-                        <span className="text-20 w-24 font-bold uppercase text-center">{suggestion.title[0]}</span>
+                        <span className="text-20 w-24 font-bold uppercase text-center">{suggestion.username[0]}</span>
                     )
                 }
             </ListItemIcon>
@@ -111,7 +111,7 @@ function getSuggestions(value, data)
         : data.filter(suggestion => {
             const keep =
                 count < 10 &&
-                match(suggestion.title, inputValue).length > 0;
+                match(suggestion.username, inputValue).length > 0;
 
             if ( keep )
             {
@@ -124,7 +124,7 @@ function getSuggestions(value, data)
 
 function getSuggestionValue(suggestion)
 {
-    return suggestion.title;
+    return suggestion.username;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -193,7 +193,7 @@ function reducer(state, action)
             };
         }
         case 'setNavigation':
-        {
+        {           
             return {
                 ...state,
                 navigation: action.value
@@ -248,10 +248,21 @@ function FuseSearch(props)
 
         function setNavigation()
         {
-            dispatch({
-                type : "setNavigation",
-                value: FuseUtils.getFlatNavigation(navigation).filter(item => itemAuthAllowed(item))
-            });
+            fetch('http://localhost:3000/search',{
+                method: 'post',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    searchText: state.searchText
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                dispatch({
+                    type : "setNavigation",
+                    value: data
+                });
+            })
+            
         }
 
         setNavigation();
@@ -289,12 +300,13 @@ function FuseSearch(props)
     {
         event.preventDefault();
         event.stopPropagation();
-        if ( !suggestion.url )
-        {
-            return;
-        }
-        props.history.push(suggestion.url);
         hideSearch();
+        // if ( !suggestion.url )
+        // {
+        //     return;
+        // }
+        props.history.push(`/pages/profile/${suggestion.username}`);
+        console.log(suggestion.username)
     }
 
     function handleSuggestionsClearRequested()

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {Button, Card, CardContent, Checkbox, FormControl, FormControlLabel, TextField, Typography} from '@material-ui/core';
 import {darken} from '@material-ui/core/styles/colorManipulator';
 import {makeStyles} from '@material-ui/styles';
 import {FuseAnimate} from '@fuse';
 import {useForm} from '@fuse/hooks';
 import clsx from 'clsx';
-import {Link} from 'react-router-dom';
+import {Link, Redirect} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -17,6 +17,8 @@ const useStyles = makeStyles(theme => ({
 function Register()
 {
     const classes = useStyles();
+
+    const [ redir, setRedir ] = useState(false)
 
     const {form, handleChange, resetForm} = useForm({
         name                 : '',
@@ -40,9 +42,25 @@ function Register()
     function handleSubmit(ev)
     {
         ev.preventDefault();
+        fetch('http://localhost:3000/register', {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: form.name,
+                email: form.email,
+                password: form.password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data === 'registered') {
+                setRedir(!redir);
+            }
+        })
         resetForm();
     }
 
+    if(redir === false){
     return (
         <div className={clsx(classes.root, "flex flex-col flex-auto flex-shrink-0 p-24 md:flex-row md:p-0")}>
 
@@ -166,6 +184,11 @@ function Register()
             </FuseAnimate>
         </div>
     );
+    }else{
+        return(
+            <Redirect to='/pages/auth/login' />
+        );
+    }
 }
 
 export default Register;
