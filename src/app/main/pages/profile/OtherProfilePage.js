@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Avatar, Button, Tab, Tabs, Typography} from '@material-ui/core';
+import CheckIcon from '@material-ui/icons/Check';
 import {makeStyles} from '@material-ui/styles';
 import {FusePageSimple, FuseAnimate} from '@fuse';
-import TimelineTab from './tabs/TimelineTab';
+import OtherTimelineTab from './tabs/OtherTimelineTab';
 import PhotosVideosTab from './tabs/PhotosVideosTab';
 import AboutTab from './tabs/AboutTab';
 import { useCookies } from 'react-cookie';
@@ -18,15 +19,73 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-function ProfilePage()
+function OtherProfilePage()
 {
+    console.log(window.location.pathname);
+    const parts = window.location.pathname.split("/");
+    const user = parts[parts.length - 1];
     const classes = useStyles();
     const [selectedTab, setSelectedTab] = useState(0);
-    const [cookies, setCookie] = useCookies(['user']);
+    const [cookies] = useCookies(['user']);
+    const [isFollowing, setIsFollowing] = useState(false)
 
     function handleTabChange(event, value)
     {
         setSelectedTab(value);
+    }
+ 
+        fetch(`http://localhost:3000/isFollowing/${user}/${cookies.user}`, {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+        })
+        .then(res => res.json)
+        .then(res => {
+            if(res === 'following'){
+                setIsFollowing(true)
+            }
+        })
+
+    function followClick(){
+        fetch('http://localhost:3000/follow', {
+            method: 'put',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                currentUser: cookies.user,
+                userToFollow: user
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res === 'success'){
+               setIsFollowing(true)
+            }
+        })
+    }
+
+    function unfollowClick(){
+        fetch('http://localhost:3000/unfollow', {
+            method: 'delete',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                currentUser: cookies.user,
+                userToUnfollow: user
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res === 'success'){
+               setIsFollowing(false)
+            }
+        })
     }
 
     return (
@@ -42,12 +101,15 @@ function ProfilePage()
                             <Avatar className="w-96 h-96" src="assets/images/avatars/Velazquez.jpg"/>
                         </FuseAnimate>
                         <FuseAnimate animation="transition.slideLeftIn" delay={300}>
-                            <Typography className="md:ml-24" variant="h4" color="inherit">{cookies.user}</Typography>
+                            <Typography className="md:ml-24" variant="h4" color="inherit">{user}</Typography>
                         </FuseAnimate>
                     </div>
 
                     <div className="flex items-center justify-end">
-                        <Button className="mr-8 normal-case" variant="contained" color="secondary" aria-label="Follow">Follow</Button>
+                        { isFollowing ?
+                        <Button className="mr-8 normal-case" variant="contained" aria-label="Following" onClick={unfollowClick}><CheckIcon fontSize='small'/> Following</Button>
+                        : <Button className="mr-8 normal-case" variant="contained" color="secondary" aria-label="Follow" onClick={followClick}>Follow</Button>
+                        }
                         <Button className="normal-case" variant="contained" color="primary" aria-label="Send Message">Send Message</Button>
                     </div>
                 </div>
@@ -83,7 +145,7 @@ function ProfilePage()
                 <div className="p-16 sm:p-24">
                     {selectedTab === 0 &&
                     (
-                        <TimelineTab/>
+                        <OtherTimelineTab/>
                     )}
                     {selectedTab === 1 && (
                         <AboutTab/>
@@ -97,4 +159,4 @@ function ProfilePage()
     )
 }
 
-export default ProfilePage;
+export default OtherProfilePage;

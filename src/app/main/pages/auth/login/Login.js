@@ -6,7 +6,7 @@ import {FuseAnimate} from '@fuse';
 import {useForm} from '@fuse/hooks';
 import {Link, Redirect } from 'react-router-dom';
 import clsx from 'clsx';
-import {setName} from '../../../UserProfile';
+import { useCookies } from 'react-cookie';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -20,6 +20,7 @@ function Login()
     const classes = useStyles();
 
     const [ redir, setRedir ] = useState(false)
+    const [ cookies, setCookie ] = useCookies(['user'])
 
     const {form, handleChange, resetForm} = useForm({
         email   : '',
@@ -49,7 +50,8 @@ function Login()
         .then(response => response.json())
         .then(data => {
             if (data[0] === 'success') {
-                setName(data[1].username)
+                // setName(data[1].username)
+                setCookie('user', data[1].username, { path: '/' });
                 setRedir(!redir);
             }
         })

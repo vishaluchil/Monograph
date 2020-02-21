@@ -31,6 +31,7 @@
     "moment": "2.24.0",
     "notistack": "0.8.6",
     "path-to-regexp": "3.0.0",
+    "pdf-viewer-reactjs": "^2.0.2",
     "perfect-scrollbar": "1.4.0",
     "prismjs": "1.16.0",
     "qs": "6.7.0",

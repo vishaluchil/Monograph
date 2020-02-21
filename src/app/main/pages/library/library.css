@@ -1,0 +1,9 @@
+.forhover{
+    transform: scale(1);
+    transition: 1s ease;
+}
+
+.forhover:hover{
+    transform: scale(1.15);
+    transition: 1s ease;
+}

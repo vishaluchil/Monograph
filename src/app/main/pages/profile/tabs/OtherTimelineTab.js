@@ -20,25 +20,25 @@ import {
 } from '@material-ui/core';
 import {FuseAnimateGroup} from '@fuse'; 
 import axios from 'axios';
-import { useCookies } from 'react-cookie';
 
-function TimelineTab()
+function OtherTimelineTab()
 {
+    window.addEventListener('locationchange', function(){
+        console.log('location changed!');
+    })
+    const parts = window.location.pathname.split("/");
+    const user = parts[parts.length - 1];
     const [data, setData] = useState(null);
-    const [input, setInput] = useState('');
     const [refresh, setRefresh] = useState(true);
-    const [file, setFile] = useState("");
-    const [fileName, setFileName] = useState("Upload Image");
     const [commentInput, setCommentInput] = useState('');
-    const [cookies] = useCookies(['user']);
 
 
     useEffect(() => {
-        fetch(`http://localhost:3000/timeline/${cookies.user}`, {
+        fetch(`http://localhost:3000/othertimeline/${user}`, {
             method: 'get',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
             },
         })
         .then(res => res.json())
@@ -47,75 +47,6 @@ function TimelineTab()
             console.log(posts)
         });
     }, [refresh]);
-
-    const onFileUpload = e => {
-        setFile(e.target.files[0])
-        setFileName(e.target.files[0].name)
-    }
-
-    const submitPost = () => {
-        if (file !== "") {
-            const formData = new FormData()
-            formData.append('file', file);
-            axios.post('http://localhost:3000/uploadImage', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            fetch('http://localhost:3000/timeline', {
-                method: 'post',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user: {
-                        name: cookies.user,
-                        avatar: `assets/images/avatars/alice.jpg`
-                    },
-                    message: input,
-                    type: 'post',
-                    like: 2,
-                    media: {
-                        type: 'image',
-                        preview: `assets/images/profile/15.jpg`
-                    },
-                    comments: []
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data === 'error') {
-                    console.log('error inserting post to db');
-                }else{
-                    setRefresh(!refresh);
-                }
-            })
-        } 
-        else {
-            fetch('http://localhost:3000/timeline', {
-                method: 'post',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user: {
-                        name: cookies.user,
-                        avatar: 'assets/images/avatars/alice.jpg'
-                    },
-                    message: input,
-                    type: 'something',
-                    like: 2,
-                    comments: []
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data === 'error') {
-                    console.log('error inserting post to db');
-                }else{
-                    setInput('');
-                    setRefresh(!refresh);
-                }
-            })
-        }
-    }
 
     const likeClick = id => {
         fetch('http://localhost:3000/timelinelike', {
@@ -172,51 +103,6 @@ function TimelineTab()
                         animation: "transition.slideUpBigIn"
                     }}
                 >
-                    <div>
-                        <Card className="w-full overflow-hidden">
-                            <Input
-                                className="p-16 w-full"
-                                value={input}
-                                onChange={e=> setInput(e.target.value)}
-                                classes={{root: 'text-14'}}
-                                placeholder="Write something.."
-                                multiline
-                                rows="6"
-                                margin="none"
-                                disableUnderline
-                            />
-                            <AppBar className="card-footer flex flex-row border-t-1" position="static" color="default" elevation={0}>
-                                <div className="flex-1 items-center p-8">
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        component="label"
-                                    >
-                                    {fileName}
-                                    <input
-                                        type="file"
-                                        style={{ display: "none" }}
-                                        onChange={onFileUpload}
-                                    />
-                                    </Button>
-                                </div>
-
-                                <div className="p-8">
-                                    <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    aria-label="post"
-                                    onClick={submitPost}>
-                                        POST
-                                    </Button>
-                                </div>
-
-                            </AppBar>
-                        </Card>
-
-                        <Divider className="my-32"/>
-                    </div>
 
                     {data.map((post) => (
                             <Card key={post._id} className="mb-32 overflow-hidden">
@@ -387,4 +273,4 @@ function TimelineTab()
     );
 }
 
-export default TimelineTab;
+export default OtherTimelineTab;

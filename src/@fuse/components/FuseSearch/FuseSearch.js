@@ -6,7 +6,7 @@ import {FuseUtils} from '@fuse';
 import clsx from 'clsx';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import {withRouter, Redirect} from 'react-router-dom';
+import {withRouter, Link} from 'react-router-dom';
 import deburr from 'lodash/deburr';
 import Autosuggest from 'react-autosuggest';
 
@@ -69,6 +69,7 @@ function renderSuggestion(suggestion, {query, isHighlighted})
     const parts = parse(suggestion.username, matches);
 
     return (
+        <Link to={`pages/otherprofile/${suggestion.username}`}>
         <MenuItem selected={isHighlighted} component="div">
             <ListItemIcon className="min-w-40">
                 {suggestion.avatar ?
@@ -97,6 +98,8 @@ function renderSuggestion(suggestion, {query, isHighlighted})
                 }
             />
         </MenuItem>
+        </Link>
+
     );
 }
 
@@ -305,7 +308,7 @@ function FuseSearch(props)
         // {
         //     return;
         // }
-        props.history.push(`/pages/profile/${suggestion.username}`);
+        props.history.push(`/pages/otherprofile/${suggestion.username}`);
         console.log(suggestion.username)
     }
 
