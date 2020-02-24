@@ -38,11 +38,25 @@ function Library() {
   const [books, setBooks] = useState(null);
   const [searchBooks, setSearchBooks] = useState(null)
   const [refresh, setRefresh] = useState(true)
+  const [subscribed, setSubscribed] = useState(false)
   const [cookies] = useCookies(['user']);
 
   const classes = useStyles();
 
   useEffect(() => {
+    fetch(`http://localhost:3000/isSubscribed/${cookies.user}`,{
+              method: 'get',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+    })
+    .then(res => res.json())
+    .then(status => {
+      if(status.subscribed){
+        setSubscribed(true)
+      }})
+
     fetch('http://localhost:3000/library',{
                 method: 'get',
                 headers: { 
@@ -74,13 +88,18 @@ function Library() {
     }
     }
 
-    function paykun() {
-      fetch('http://localhost:3000/start/payment',{
-        method: 'post'
+    function subscribe() {
+      fetch('http://localhost:3000/subscribe',{
+        method: 'put',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: cookies.user
+        })
       })
+      .then(res => res.json())
     }
 
-    if(true){
+    if(!subscribed){
       return (
         <div style={{maxWidth:400, position:'absolute', top:0, left:0, right:0, bottom:0, margin:'auto', height:400}}>
         <Card className={classes.root} width="400px">
@@ -99,13 +118,10 @@ function Library() {
           <Divider variant="middle" />
           <CardActions className={classes.action}>
             <form action='http://localhost:3000/start/payment' method='POST'>
-            <input type="hidden" value={cookies.user} name="user_id" />
-              <input type='submit'/>
-            </form>
-            {/* <Button variant="contained" color="secondary" className={classes.button} onClick={paykun}>
+            <Button type="submit" variant="contained" color="secondary" className={classes.button} onClick={subscribe}>
               Buy
-            </Button> */}
-{/* <div class='pm-button'><a href='https://www.payumoney.com/paybypayumoney/#/93F99B0BFB4823C056930779B4703523' target='_blank'><img src='https://www.payumoney.com/media/images/payby_payumoney/new_buttons/21.png' /></a></div>           */}
+            </Button>
+            </form>
          </CardActions>
         </Card>
         </div>
