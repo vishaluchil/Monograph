@@ -38,7 +38,7 @@ function FuseNavVerticalGroup(props)
 
             <ListSubheader disableSticky={true} className={clsx(classes.item, listItemPadding, "list-subheader flex items-center")}>
                 <span className="list-subheader-text uppercase text-12">
-                    {item.title}
+                    Navigate
                 </span>
             </ListSubheader>
 
